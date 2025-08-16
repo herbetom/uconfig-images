@@ -59,7 +59,7 @@ jobs:
           date > files/buildtime
 
       - name: Build
-        uses: herbetom/openwrt-gh-action-imagebuilder@main
+        uses: herbetom/openwrt-gh-action-imagebuilder@v1
         with:
           release: ${{ matrix.release }}
           target-name: ${{ matrix.target }}
