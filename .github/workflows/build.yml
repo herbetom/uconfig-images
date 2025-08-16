@@ -1,0 +1,153 @@
+name: Build OpenWrt Images
+
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  build:
+    name: build ${{ matrix.release }} ${{ matrix.target }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        release:
+          - SNAPSHOT
+        target:
+          - x86-64
+          - mediatek-filogic
+          - ramips-mt7621
+          - ipq40xx-generic
+          - realtek-rtl838x
+          #- mpc85xx-p1020
+        include:
+          - target: x86-64
+            profile: generic
+            distrib_arch: x86_64
+          - target: mediatek-filogic
+            profile: zyxel_nwa50ax-pro openwrt_one acer_vero-w6m asus_tuf-ax4200 asus_tuf-ax6000
+            distrib_arch: aarch64_cortex-a53
+          - target: ramips-mt7621
+            profile: genexis_pulse-ex400 zyxel_nwa50ax zyxel_nwa55axe dlink_dap-x1860-a1 zyxel_wsm20 xiaomi_mi-router-4a-gigabit
+            distrib_arch: mipsel_24kc
+          - target: ipq40xx-generic
+            profile: aruba_ap-303 avm_fritzbox-4040 glinet_gl-b1300
+            distrib_arch: arm_cortex-a7_neon-vfpv4
+          - target: realtek-rtl838x
+            profile: zyxel_gs1900-10hp zyxel_gs1900-8hp-v1 zyxel_gs1900-8hp-v2
+            distrib_arch: mips_24kc
+          #- target: mpc85xx-p1020
+          #  profile: extreme-networks_ws-ap3825i
+          #  distrib_arch: powerpc_8548
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: create files
+        run: |
+          mkdir -p files
+          date > files/buildtime
+
+      - name: Add test directories
+        run: mkdir -p artifacts keys files
+
+      - name: add keys
+        run: "wget -O keys/uconfig.pem https://download.uconfig.tomhe.de/snapshots/packages/${{ matrix.distrib_arch }}/repokey.pub"
+
+      - name: create files
+        run: |
+          date > files/buildtime
+
+      - name: Build
+        uses: herbetom/openwrt-gh-action-imagebuilder@main
+        with:
+          release: ${{ matrix.release }}
+          target-name: ${{ matrix.target }}
+          profile: ${{ matrix.profile }}
+        env:
+          ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
+          PACKAGES: nano htop tcpdump tmux ethtool-full jq uconfig uconfig-cli uconfig-client uconfig-mod-fingerprint uconfig-mod-lldp
+          CUSTOM_REPO: "https://download.uconfig.tomhe.de/snapshots/packages/${{ matrix.distrib_arch }}/uconfig/packages.adb"
+          KEYS_DIR: "${{ github.workspace }}/keys"
+          FILES_DIR: "${{ github.workspace }}/files"
+          EXTRA_IMAGE_NAME: "uconfig"
+        id: build
+
+      - name: list files
+        run: ls -R
+        if: ${{ !cancelled() }}
+
+      - name: apt install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: output profiles.json
+        run: jq '.' artifacts/bin/targets/${{ steps.build.outputs.target }}/${{ steps.build.outputs.subtarget }}/profiles.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: images-${{ matrix.release }}-${{ matrix.target }}
+          path: |
+            artifacts/bin/targets/${{ steps.build.outputs.target }}/${{ steps.build.outputs.subtarget }}/
+
+  combine:
+    name: Combine packages
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v5
+        with:
+          path: artifacts
+          pattern: "images-*"
+
+      - name: list files
+        run: "ls -Rl ./artifacts/"
+
+      - name: combine sysupgrades
+        run: |
+          mkdir combined-artifacts
+          for d in artifacts/* ; do
+            jq -r ".profiles | to_entries[] | .value.images[] | select(.filesystem == \"squashfs\" and (.type == \"sysupgrade\" or .type == \"combined-efi\")) | \"${d}/\(.name)\"" $d/profiles.json |
+            while read -r filename; do
+              cp -v $filename combined-artifacts/;
+            done
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: combined-artifacts
+          path: |
+            combined-artifacts/*
+
+      - name: Attest Image Build Provenance
+        if: github.ref_type == 'tag'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: combined-artifacts/*
+          show-summary: false
+
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    needs: combine
+    if: github.ref_type == 'tag'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          path: /tmp/combined-artifacts
+          pattern: "combined-artifacts"
+
+      - name: list files
+        run: "ls -Rl /tmp/combined-artifacts/"
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            /tmp/combined-artifacts/*
