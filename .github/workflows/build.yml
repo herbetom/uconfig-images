@@ -3,6 +3,7 @@ name: Build OpenWrt Images
 on:
   push: {}
   pull_request: {}
+  workflow_dispatch: {}
 
 jobs:
   build:
