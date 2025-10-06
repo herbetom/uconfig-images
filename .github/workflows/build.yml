@@ -35,7 +35,7 @@ jobs:
             profile: aruba_ap-303 avm_fritzbox-4040 glinet_gl-b1300
             distrib_arch: arm_cortex-a7_neon-vfpv4
           - target: realtek-rtl838x
-            profile: zyxel_gs1900-10hp-a1 zyxel_gs1900-8hp-a1 zyxel_gs1900-8hp-v2
+            profile: zyxel_gs1900-10hp-a1 zyxel_gs1900-8hp-a1 zyxel_gs1900-8hp-b1
             distrib_arch: mips_24kc
           #- target: mpc85xx-p1020
           #  profile: extreme-networks_ws-ap3825i
