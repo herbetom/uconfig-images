@@ -19,7 +19,7 @@ jobs:
           - mediatek-filogic
           - ramips-mt7621
           - ipq40xx-generic
-          - realtek-rtl838x
+          #- realtek-rtl838x
           #- mpc85xx-p1020
         include:
           - target: x86-64
@@ -34,9 +34,9 @@ jobs:
           - target: ipq40xx-generic
             profile: aruba_ap-303 avm_fritzbox-4040 glinet_gl-b1300
             distrib_arch: arm_cortex-a7_neon-vfpv4
-          - target: realtek-rtl838x
-            profile: zyxel_gs1900-10hp-a1 zyxel_gs1900-8hp-a1 zyxel_gs1900-8hp-b1
-            distrib_arch: mips_24kc
+          #- target: realtek-rtl838x
+          #  profile: zyxel_gs1900-10hp-a1 zyxel_gs1900-8hp-a1 zyxel_gs1900-8hp-b1
+          #  distrib_arch: mips_24kc
           #- target: mpc85xx-p1020
           #  profile: extreme-networks_ws-ap3825i
           #  distrib_arch: powerpc_8548
