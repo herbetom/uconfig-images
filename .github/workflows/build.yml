@@ -26,7 +26,7 @@ jobs:
             profile: generic
             distrib_arch: x86_64
           - target: mediatek-filogic
-            profile: zyxel_nwa50ax-pro openwrt_one acer_vero-w6m asus_tuf-ax4200 asus_tuf-ax6000
+            profile: zyxel_nwa50ax-pro openwrt_one acer_vero-w6m asus_tuf-ax4200 asus_tuf-ax6000 cudy_ap3000outdoor-v1
             distrib_arch: aarch64_cortex-a53
           - target: ramips-mt7621
             profile: genexis_pulse-ex400 zyxel_nwa50ax zyxel_nwa55axe dlink_dap-x1860-a1 zyxel_wsm20 xiaomi_mi-router-4a-gigabit
