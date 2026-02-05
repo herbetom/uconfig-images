@@ -67,7 +67,7 @@ jobs:
           profile: ${{ matrix.profile }}
         env:
           ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
-          PACKAGES: nano htop tcpdump tmux ethtool-full jq uconfig uconfig-cli uconfig-client uconfig-mod-fingerprint uconfig-mod-lldp
+          PACKAGES: nano htop tcpdump tmux ethtool-full jq uconfig uconfig-cli uconfig-client uconfig-mod-fingerprint uconfig-mod-lldp -wpad-basic-mbedtls wpad-mbedtls
           CUSTOM_REPO: "https://download.uconfig.tomhe.de/snapshots/packages/${{ matrix.distrib_arch }}/uconfig/packages.adb"
           KEYS_DIR: "${{ github.workspace }}/keys"
           FILES_DIR: "${{ github.workspace }}/files"
