@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         release:
-          - 25.12.0
+          - 25.12.2
         target:
           - x86-64
           - mediatek-filogic
@@ -22,7 +22,7 @@ jobs:
           #- realtek-rtl838x
           #- mpc85xx-p1020
         include:
-          - release: 25.12.0
+          - release: 25.12.2
             feed_base: openwrt-25.12
           - target: x86-64
             profile: generic
