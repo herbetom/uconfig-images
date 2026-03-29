@@ -42,7 +42,7 @@ jobs:
           #  distrib_arch: powerpc_8548
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: create files
         run: |
@@ -60,7 +60,7 @@ jobs:
           date > files/buildtime
 
       - name: Build
-        uses: herbetom/openwrt-gh-action-imagebuilder@v1
+        uses: herbetom/openwrt-gh-action-imagebuilder@v2
         with:
           release: ${{ matrix.release }}
           target-name: ${{ matrix.target }}
@@ -84,7 +84,7 @@ jobs:
       - name: output profiles.json
         run: jq '.' artifacts/bin/targets/${{ steps.build.outputs.target }}/${{ steps.build.outputs.subtarget }}/profiles.json
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: images-${{ matrix.release }}-${{ matrix.target }}
           path: |
@@ -98,9 +98,9 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
           pattern: "images-*"
@@ -118,7 +118,7 @@ jobs:
             done
           done
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: combined-artifacts
           path: |
@@ -126,7 +126,7 @@ jobs:
 
       - name: Attest Image Build Provenance
         if: github.ref_type == 'tag'
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: combined-artifacts/*
           show-summary: false
@@ -139,7 +139,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           path: /tmp/combined-artifacts
           pattern: "combined-artifacts"
