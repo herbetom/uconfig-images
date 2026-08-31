@@ -28,7 +28,7 @@ jobs:
             profile: generic
             distrib_arch: x86_64
           - target: mediatek-filogic
-            profile: zyxel_nwa50ax-pro openwrt_one acer_vero-w6m asus_tuf-ax4200 asus_tuf-ax6000 cudy_ap3000outdoor-v1
+            profile: zyxel_nwa50ax-pro openwrt_one acer_predator-w6 acer_vero-w6m asus_tuf-ax4200 asus_tuf-ax6000 cudy_ap3000outdoor-v1
             distrib_arch: aarch64_cortex-a53
           - target: ramips-mt7621
             profile: genexis_pulse-ex400 zyxel_nwa50ax zyxel_nwa55axe dlink_dap-x1860-a1 zyxel_wsm20 xiaomi_mi-router-4a-gigabit
@@ -43,19 +43,35 @@ jobs:
           #  profile: extreme-networks_ws-ap3825i
           #  distrib_arch: powerpc_8548
 
+    env:
+      FEED_URL: "https://feed-blogic.web.s3.tomhe.de/${{ matrix.feed_base }}/packages/${{ matrix.distrib_arch }}/blogic/packages.adb"
+      REPO_PUB: "https://feed-blogic.web.s3.tomhe.de/${{ matrix.feed_base }}/packages/${{ matrix.distrib_arch }}/repokey.pub"
+
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: create files
         run: |
           mkdir -p files
           date > files/buildtime
 
-      - name: Add test directories
-        run: mkdir -p artifacts keys files
+      - name: Add dir artifacts
+        run: mkdir -p artifacts
 
-      - name: add keys
-        run: "wget -O keys/uconfig.pem https://download.uconfig.tomhe.de/${{ matrix.feed_base }}/packages/${{ matrix.distrib_arch }}/repokey.pub"
+      - name: Add dir files
+        run: mkdir -p files
+
+      - name: Add dir files/etc/apk/keys
+        run: mkdir -p files/etc/apk/keys
+
+      - name: add custom repo key
+        run: "wget -O files/etc/apk/keys/blogic.pem ${{ env.REPO_PUB }}"
+
+      - name: Add dir files/etc/apk/repositories.d/
+        run: mkdir -p files/etc/apk/repositories.d/
+
+      - name: Add custom feed
+        run: echo "${{ env.FEED_URL }}" > files/etc/apk/repositories.d/blogicfeeds.list
 
       - name: create files
         run: |
@@ -69,9 +85,9 @@ jobs:
           profile: ${{ matrix.profile }}
         env:
           ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
-          PACKAGES: nano htop tcpdump tmux ethtool-full jq uconfig uconfig-cli uconfig-client uconfig-mod-fingerprint uconfig-mod-lldp -wpad-basic-mbedtls wpad-mbedtls
-          CUSTOM_REPO: "https://download.uconfig.tomhe.de/${{ matrix.feed_base }}/packages/${{ matrix.distrib_arch }}/uconfig/packages.adb"
-          KEYS_DIR: "${{ github.workspace }}/keys"
+          PACKAGES: nano htop tcpdump tmux ethtool-full jq uconfig uconfig-mod-fingerprint uconfig-mod-lldp -wpad-basic-mbedtls wpad-mbedtls
+          CUSTOM_REPO: "${{ env.FEED_URL }}"
+          KEYS_DIR: "${{ github.workspace }}/files/etc/apk/keys"
           FILES_DIR: "${{ github.workspace }}/files"
           EXTRA_IMAGE_NAME: "uconfig"
         id: build
@@ -100,7 +116,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/download-artifact@v8
         with:
@@ -150,7 +166,7 @@ jobs:
         run: "ls -Rl /tmp/combined-artifacts/"
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           files: |
