@@ -85,7 +85,7 @@ jobs:
           profile: ${{ matrix.profile }}
         env:
           ARTIFACTS_DIR: ${{ github.workspace }}/artifacts
-          PACKAGES: nano htop tcpdump tmux ethtool-full jq uconfig uconfig-mod-fingerprint uconfig-mod-lldp -wpad-basic-mbedtls wpad-mbedtls
+          PACKAGES: nano htop tcpdump tmux ethtool-full jq ucode-mod-math uconfig uconfig-mod-fingerprint uconfig-mod-lldp -wpad-basic-mbedtls wpad-mbedtls
           CUSTOM_REPO: "${{ env.FEED_URL }}"
           KEYS_DIR: "${{ github.workspace }}/files/etc/apk/keys"
           FILES_DIR: "${{ github.workspace }}/files"
